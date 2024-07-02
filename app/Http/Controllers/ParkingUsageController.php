@@ -58,7 +58,24 @@ public function registerExit($id)
 
     return redirect()->route('parking-usage.entry')->with('success', 'Saída registrada com sucesso.');
 }
+public function exit($id)
+    {
+        $usage = ParkingUsage::where('parking_spot_id', $id)->whereNull('exit_time')->first();
 
+        if ($usage) {
+            $usage->exit_time = now();
+            $usage->save();
+
+            // Atualizar o status da vaga de estacionamento para 'available'
+            $spot = ParkingSpot::find($id);
+            $spot->status = 'available';
+            $spot->save();
+
+            return redirect('/parking-spots')->with('success', 'Saída registrada com sucesso!');
+        }
+
+        return redirect('/parking-spots')->with('error', 'Nenhum uso ativo encontrado para esta vaga.');
+    }
 
 
 }
