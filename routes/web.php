@@ -6,6 +6,7 @@ use App\Http\Controllers\ParkingSpotController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ParkingUsageController;
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\CalendarController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,8 +28,12 @@ Route::get('financial-report', [ReportController::class, 'financialReport'])->na
 Route::get('parking-usage/entry', [ParkingUsageController::class, 'showEntryForm'])->name('parking-usage.entry');
 Route::post('parking-usage/entry', [ParkingUsageController::class, 'registerEntry'])->name('parking-usage.register-entry');
 Route::post('parking-usage/exit/{id}', [ParkingUsageController::class, 'registerExit'])->name('parking-usage.exit');
-Route::get('/daily-report/{date}', [ReportController::class, 'dailyReport'])->name('daily-report');
-Route::get('/financial-dashboard', function () {
-    return view('financialDash');
-})->name('financial-dashboard');
+//Route::get('daily-report/{date}', [ReportController::class, 'dailyReport'])->name('daily-report');
 
+// Route::get('/daily-report', [ReportController::class, 'dailyReportFromQuery'])->name('daily-report.query');
+
+
+Route::get('/choose-date', [CalendarController::class, 'index'])->name('choose-date');
+Route::post('/redirect-to-report', [CalendarController::class, 'redirectToReport'])->name('redirect-to-report');
+Route::get('/daily-report', [ReportController::class, 'dailyReportFromQuery'])->name('daily-report.query');
+Route::post('/daily-report/{date}', [CalendarController::class, 'dailyReport'])->name('daily-report');
