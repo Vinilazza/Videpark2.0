@@ -15,10 +15,7 @@ class CalendarController extends Controller
     {
         $selectedDate = $request->input('selectedDate');
 
-        // Armazena a data selecionada na sessão
-        $request->session()->put('selectedDate', $selectedDate);
-
-        // Redireciona para o ReportController
-        return redirect()->route('');
+        // Redireciona para o ReportController com a data selecionada
+        return redirect()->route('daily-report.query', ['date' => $selectedDate]);
     }
 }

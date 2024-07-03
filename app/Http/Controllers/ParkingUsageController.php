@@ -68,21 +68,24 @@ class ParkingUsageController extends Controller
 
                     // Passar os dados para o relatório
                     // Redirecionar para o relatório com os dados necessários
+                    
+            $parkingSpot = $parkingUsage->parkingSpot;
+            $parkingSpot->is_occupied = false;
+            $parkingSpot->save();
                     return redirect()->route('reports.financial', compact('revenue'))->with('success', 'Saída registrada com sucesso.');
                 }
             }
 
             // Atualizar is_occupied para false
-            $parkingSpot = $parkingUsage->parkingSpot;
-            if ($parkingSpot) {
-                $parkingSpot->is_occupied = false;
-                $parkingSpot->save();
-            }
+
 
             // Prosseguir com a remoção
             $parkingUsage->exit_time = $exitTime;
             $parkingUsage->save();
 
+            $parkingSpot = $parkingUsage->parkingSpot;
+            $parkingSpot->is_occupied = false;
+            $parkingSpot->save();
             // Retornar uma resposta de sucesso ou redirecionar para outra página
             return redirect()->route('parking-usage.entry')->with('success', 'Saída registrada com sucesso.');
         } else {

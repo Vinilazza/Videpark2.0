@@ -29,17 +29,11 @@ class ReportController extends Controller
 
         return view('reports.daily', compact('totalRevenue', 'date'));
     }
-    public function dailyReportFromQuery(Request $request)
+    public function dailyReportFromQuery($date)
     {
-        $date = $request->query('date');
 
-        if ($date) {
-            // Redireciona para a rota com a data no formato /daily-report/{date}
-            return redirect()->route('daily-report', ['date' => $date]);
-        } else {
-            // Lógica para tratar caso não haja data na query string
-            // Por exemplo, redirecionar de volta para a escolha de data
-            return redirect()->route('choose-date')->with('error', 'Data não especificada.');
-        }
+        $totalRevenue = DailyRevenue::whereDate('date', $date)->sum('revenue');
+
+        return view('reports.daily', compact('date', 'totalRevenue'));
     }
 }

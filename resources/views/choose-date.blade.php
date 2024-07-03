@@ -5,7 +5,7 @@
 @section('content')
     <h1>Escolha uma Data</h1>
 
-    <form id="dateForm" action="{{ route('redirect-to-report') }}" method="GET">
+    <form id="dateForm" action="{{ route('redirect-to-report') }}" method="POST">
         @csrf <!-- Adicionar o token CSRF por segurança -->
         <label for="selectedDate">Selecione uma data:</label>
         <input type="date" id="selectedDate" name="selectedDate" required>
