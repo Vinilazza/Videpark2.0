@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>VIDEPARK</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -24,6 +25,20 @@
                         <a class="nav-link" href="{{ route('register-user') }}">Register</a>
                     </li>
                     @else
+                    <li class="nav-item">
+                    <a class="nav-link  "href="{{ route('parking-spots.index') }}">Vagas</a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link"href="{{ route('parking-usage.entry') }}">Entrada de Veículo</a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link"href="{{ route('reports.financial') }}">Relatório Financeiro</a>
+                    </li>
+                    <li class="nav-item">
+
+                    <a class="nav-link"href="{{ route('plans.index') }}">Planos</a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('signout') }}">Logout</a>
                     </li>

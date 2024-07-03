@@ -14,8 +14,8 @@ return new class extends Migration
     Schema::create('plans', function (Blueprint $table) {
         $table->id();
         $table->string('name');
-        $table->decimal('price', 8, 2);
-        $table->string('type')->default('default'); // Exemplo de valor padrão 'default'
+        $table->decimal('price', 8, 2)->default(0.00);
+        $table->string('type');
         $table->timestamps();
     });
 }

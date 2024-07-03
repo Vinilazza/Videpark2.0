@@ -12,70 +12,85 @@ class ParkingUsageController extends Controller
     public function showEntryForm()
     {
         $availableSpots = ParkingSpot::where('is_occupied', false)->get();
-        $plans = Plan::all(); // Buscar todos os planos disponíveis
-        return view('parking_usages.entry', compact('availableSpots', 'plans'));
+        $plans = Plan::all();
+        $parkingSpots = ParkingSpot::all(); // Adicione essa linha para buscar todas as vagas
+    
+        return view('parking_usages.entry', compact('availableSpots', 'plans', 'parkingSpots'));
     }
-
+    
     public function registerEntry(Request $request)
-{
-    $request->validate([
-        'parking_spot_id' => 'required|exists:parking_spots,id',
-        'plan_id' => 'required|exists:plans,id',
-    ]);
-
-    // Obter o ID do usuário autenticado
-    $userId = Auth::id();
-
-    $parkingUsage = ParkingUsage::create([
-        'user_id' => $userId,
-        'parking_spot_id' => $request->parking_spot_id,
-        'plan_id' => $request->plan_id,
-        'entry_time' => now(),
-    ]);
-
-    // Marcar a vaga como ocupada
-    $parkingSpot = ParkingSpot::find($request->parking_spot_id);
-    $parkingSpot->is_occupied = true;
-    $parkingSpot->save();
-
-    return redirect()->route('parking-usage.entry')->with('success', 'Entrada registrada com sucesso.');
-}
-
-public function registerExit($id)
-{
-    $parkingUsage = ParkingUsage::find($id);
-
-    if (!$parkingUsage || $parkingUsage->exit_time !== null) {
-        return redirect()->back()->with('error', 'Uso inválido ou saída já registrada.');
-    }
-
-    $parkingUsage->exit_time = now();
-    $parkingUsage->save();
-
-    $parkingSpot = ParkingSpot::find($parkingUsage->parking_spot_id);
-    $parkingSpot->is_occupied = false; // Marcar a vaga como não ocupada
-    $parkingSpot->save();
-
-    return redirect()->route('parking-usage.entry')->with('success', 'Saída registrada com sucesso.');
-}
-public function exit($id)
     {
-        $usage = ParkingUsage::where('parking_spot_id', $id)->whereNull('exit_time')->first();
+        $request->validate([
+            'parking_spot_id' => 'required|exists:parking_spots,id',
+            'plan_id' => 'required|exists:plans,id',
+        ]);
 
-        if ($usage) {
-            $usage->exit_time = now();
-            $usage->save();
-
-            // Atualizar o status da vaga de estacionamento para 'available'
-            $spot = ParkingSpot::find($id);
-            $spot->status = 'available';
-            $spot->save();
-
-            return redirect('/parking-spots')->with('success', 'Saída registrada com sucesso!');
+        $parkingSpot = ParkingSpot::find($request->parking_spot_id);
+        if ($parkingSpot->is_occupied) {
+            return redirect()->back()->with('error', 'Vaga já ocupada');
         }
 
-        return redirect('/parking-spots')->with('error', 'Nenhum uso ativo encontrado para esta vaga.');
+        ParkingUsage::create([
+            'user_id' => Auth::id(),
+            'parking_spot_id' => $request->parking_spot_id,
+            'plan_id' => $request->plan_id,
+            'entry_time' => now(),
+        ]);
+
+        $parkingSpot->is_occupied = true;
+        $parkingSpot->save();
+
+        return redirect()->route('parking-usage.entry')->with('success', 'Entrada registrada com sucesso.');
+    }
+    public function registerExit($id)
+    {
+        $parkingUsage = ParkingUsage::findOrFail($id);
+
+        // Verificar se o $parkingUsage existe
+        if ($parkingUsage) {
+            // Obter os dados necessários antes de remover
+            $entryTime = $parkingUsage->entry_time;
+            $exitTime = now(); // Registrar o horário de saída como o momento atual
+
+            // Calcular receita se necessário
+            if ($entryTime && $exitTime) {
+                // Calcular a receita com base no plano associado ao $parkingUsage
+                $plan = $parkingUsage->plan;
+                if ($plan) {
+                    $entry = new \DateTime($entryTime);
+                    $exit = new \DateTime($exitTime);
+                    $durationInMinutes = $entry->diff($exit)->i;
+                    $hours = $durationInMinutes / 60;
+                    $revenue = $plan->price * $hours;
+
+                    // Exemplo de uso:
+                    // Log::info("Receita gerada ao registrar saída: R$ " . number_format($revenue, 2));
+
+                    // Passar os dados para o relatório
+                    // Redirecionar para o relatório com os dados necessários
+                    return redirect()->route('reports.financial', compact('revenue'))->with('success', 'Saída registrada com sucesso.');
+                }
+            }
+
+            // Atualizar is_occupied para false
+            $parkingSpot = $parkingUsage->parkingSpot;
+            if ($parkingSpot) {
+                $parkingSpot->is_occupied = false;
+                $parkingSpot->save();
+            }
+
+            // Prosseguir com a remoção
+            $parkingUsage->exit_time = $exitTime;
+            $parkingUsage->save();
+
+            // Retornar uma resposta de sucesso ou redirecionar para outra página
+            return redirect()->route('parking-usage.entry')->with('success', 'Saída registrada com sucesso.');
+        } else {
+            // Se $parkingUsage não existir
+            return redirect()->route('parking-usage.entry')->with('error', 'Registro de uso não encontrado.');
+        }
     }
 
 
 }
+
